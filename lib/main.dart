@@ -1,5 +1,5 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 
 void main() async {
@@ -28,46 +28,87 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
   final _auth = FirebaseAuth.instance;
   String _userEmail = '';
+  bool _isSignedIn = false;
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
 
   Future<void> _signIn() async {
     try {
       await _auth.signInWithEmailAndPassword(
-          email: 'your_email@example.com', password: 'your_password');
+          email: 'mr.baer89@honeymail.com', password: 'Honigtopf-35');
       setState(() {
         _userEmail = _auth.currentUser!.email!;
+        _isSignedIn = true;
+      });
+    } catch (e) {
+      print(e);
+
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: const Text('Fehler'),
+            content: Text('Anmeldung fehlgeschlagen: $e'),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                },
+                child: const Text('OK'),
+              ),
+            ],
+          );
+        },
+      );
+    }
+  }
+
+  Future<void> _signOut() async {
+    try {
+      await _auth.signOut();
+      setState(() {
+        _userEmail = '';
+        _isSignedIn = false;
       });
     } catch (e) {
       print(e);
     }
   }
 
-  Future<void> _signOut() async {
-    await _auth.signOut();
-    setState(() {
-      _userEmail = '';
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Firebase Auth Example'),
+        title: const Text('Firebase Auth'),
       ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text(_userEmail),
-            ElevatedButton(
-              onPressed: _signIn,
-              child: const Text('Einloggen'),
-            ),
-            ElevatedButton(
-              onPressed: _signOut,
-              child: const Text('Ausloggen'),
-            ),
-          ],
+      body: Padding(
+        padding: const EdgeInsets.all(32.0),
+        child: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              TextField(
+                controller: _emailController,
+                decoration: const InputDecoration(labelText: 'Email'),
+              ),
+              TextField(
+                controller: _passwordController,
+                obscureText: true,
+                decoration: const InputDecoration(labelText: 'Passwort'),
+              ),
+              Text(_userEmail),
+              if (_isSignedIn)
+                ElevatedButton(
+                  onPressed: _signOut,
+                  child: const Text('Ausloggen'),
+                )
+              else
+                ElevatedButton(
+                  onPressed: _signIn,
+                  child: const Text('Einloggen'),
+                ),
+            ],
+          ),
         ),
       ),
     );
